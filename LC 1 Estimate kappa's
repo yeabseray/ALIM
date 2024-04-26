@@ -1,0 +1,27 @@
+# 1.2. Estimate kappa's: initialization
+
+# Create the response variable Z
+Z <- log(Df$mx) - alpha_est[match(Df$Age, levels(Df$Age))]
+
+# Create the design matrix X for kappa estimation
+X <- model.matrix(~ as.factor(Df$Year) - 1)
+
+# Estimate kappa using the explicit solution
+kappa_est_expl <- solve(crossprod(X)) %*% t(X) %*% Z
+
+Df$Year <- factor(Df$Year)
+
+# Estimate kappa using lm() function
+kappa_est <- lm(Z ~ -1 + as.factor(Df$Year))$coef
+
+# Visualize the results
+library(ggplot2)
+data <- tibble(year = unique(Df$Year), fit = kappa_est)
+g <- ggplot(data) + 
+  geom_point(aes(year, kappa_est)) + 
+  geom_line(aes(year, kappa_est), col = "black") +
+  theme_bw() +
+  ggtitle("New Zealand - all genders, 1948 - 2021, starting values") + 
+  labs(y = bquote(hat(kappa)[t]^"(2)"))
+
+g
