@@ -1,0 +1,15 @@
+
+import csv
+
+# Open the text file
+with open('bltper.txt', 'r') as txt_file:
+    lines = txt_file.readlines()
+
+# Remove any leading/trailing whitespaces and split each line into a list
+data = [line.strip().split() for line in lines]
+
+# Write the data to a CSV file
+with open('bltper.csv', 'w', newline='') as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(['Year', 'Age', 'mx', 'qx', 'ax', 'lx', 'dx', 'Lx', 'Tx', 'ex'])  # Write header row
+    writer.writerows(data)  # Write data rows
