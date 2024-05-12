@@ -330,10 +330,13 @@ fit701=function(xv,yv,etx,dtx,wa){
        wa=wa,epsilon=epsilon,mhat=mhat,ll=l1,BIC=BIC,npar=npar,mtxLastYear = mtx[m,])		 
 }
 
-Df <- read.table('Df.csv')
+# Df <- read.table('Df.csv')
 
 ages <- 0:110  # Define ages up to the maximum supported age
 years <- 1970:2019
+
+#Change all 0 into 0.0005
+Df[Df == 0] <- 0.0005
 
 lx_subset <- Df$lx[Df$Year %in% years & Df$Age %in% ages]
 # Assuming you have already defined years and ages vectors
@@ -357,19 +360,26 @@ LCfit701 <- fit701(ages, years, lx_matrix, dx_matrix, matrix(1, length(years), l
 ## ------------------------------------------------------------------------------------
 names(LCfit701)
 
-## ------------------------------------------------------------------------------------
 library(ggplot2)
 
-# Fit a Poisson regression model
-model <- glm(dx ~ Year + Age, data = Df, family = "poisson")
+data_period <- tibble(year = years, fit = LCfit701$kappa2)
+data_age <- tibble(age = ages, fit_alpha = LCfit701$beta1, fit_beta = LCfit701$beta2)
 
-# Predictions
-Df$predicted_dx <- predict(model, type = "response")
+g_1 <- ggplot(data_age) + geom_point(aes(age, fit_alpha)) + 
+  geom_line(aes(age, fit_alpha), col = "black") +
+  theme_bw() +
+  ggtitle("New Zealand - all gender, 1970 - 2019, Lee Carter, Poisson") + 
+  labs(y = bquote(hat(beta)[x]^"(1)")) 
 
-# Plotting the results
-p <- ggplot(Df, aes(x = Age, y = dx)) +
-  geom_point() +
-  geom_line(aes(y = predicted_dx), color = "red") +
-  labs(title = "Poisson Regression Model", x = "Age", y = "dx")
+g_2 <- ggplot(data_age) + geom_point(aes(age, fit_beta)) + 
+  geom_line(aes(age, fit_beta), col = "black") +
+  theme_bw() + ggtitle("") +
+  labs(y = bquote(hat(beta)[x]^"(2)")) 
 
-print(p)
+g_3 <- ggplot(data_period) + geom_point(aes(year, fit)) + 
+  geom_line(aes(year, fit), col = "black") +
+  theme_bw() + ggtitle("") + 
+  labs(y = bquote(hat(kappa)[t]^"(2)")) 
+
+library(gridExtra)
+grid.arrange(g_1, g_2, g_3, ncol = 2)
